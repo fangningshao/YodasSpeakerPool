@@ -22,6 +22,7 @@ import random
 import os
 import glob
 import shutil
+import argparse
 
 # --- Configuration ---
 DEFAULT_DATA_DIR = "data/emilia_yodas_speaker_pool"
@@ -204,8 +205,8 @@ class SpeakerPoolExplorer:
 
 # --- Gradio UI Construction ---
 
-def create_demo():
-    explorer = SpeakerPoolExplorer(DEFAULT_DATA_DIR)
+def create_demo(data_dir):
+    explorer = SpeakerPoolExplorer(data_dir)
 
     with gr.Blocks(title="Speaker Pool Explorer", theme=gr.themes.Soft()) as demo:
         gr.Markdown("# 🎙️ Speaker Pool Explorer")
@@ -383,7 +384,63 @@ def create_demo():
     return demo
 
 
+def main():
+    parser = argparse.ArgumentParser(
+        description='Speaker Pool Explorer - Browse and annotate speaker datasets',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Basic usage with default settings
+  python demo.py
+  
+  # Custom data directory
+  python demo.py --data_dir "path/to/speaker/pool"
+  
+  # Custom server settings
+  python demo.py --host 0.0.0.0 --port 8080
+  
+  # Full customization
+  python demo.py --data_dir "data/my_pool" --host 0.0.0.0 --port 7890
+        """
+    )
+    
+    parser.add_argument('--data_dir', type=str, default=DEFAULT_DATA_DIR,
+                       help=f'Path to speaker pool data directory (default: {DEFAULT_DATA_DIR})')
+    parser.add_argument('--host', type=str, default='127.0.0.1',
+                       help='Server host address (default: 127.0.0.1, use 0.0.0.0 for external access)')
+    parser.add_argument('--port', type=int, default=7879,
+                       help='Server port (default: 7879)')
+    parser.add_argument('--no_browser', action='store_true',
+                       help='Do not automatically open browser')
+    parser.add_argument('--share', action='store_true',
+                       help='Create a public shareable link via Gradio')
+    
+    args = parser.parse_args()
+    
+    # Validate data directory exists
+    if not Path(args.data_dir).exists():
+        print(f"Warning: Data directory '{args.data_dir}' does not exist.")
+        print(f"Creating directory: {args.data_dir}")
+        Path(args.data_dir).mkdir(parents=True, exist_ok=True)
+    
+    print("="*80)
+    print("🎙️  Speaker Pool Explorer")
+    print("="*80)
+    print(f"Data directory: {args.data_dir}")
+    print(f"Server: http://{args.host}:{args.port}")
+    if args.share:
+        print("Public sharing: Enabled")
+    print("="*80)
+    
+    demo_app = create_demo(args.data_dir)
+    demo_app.launch(
+        server_name=args.host,
+        server_port=args.port,
+        inbrowser=not args.no_browser,
+        share=args.share,
+        allowed_paths=[args.data_dir]
+    )
+
+
 if __name__ == "__main__":
-    demo_app = create_demo()
-    # allow_flagging="never" prevents gradio from creating a log folder for user feedback
-    demo_app.launch(server_name="127.0.0.1", server_port=7879, inbrowser=True, allowed_paths=[DEFAULT_DATA_DIR])
+    main()
