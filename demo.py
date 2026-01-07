@@ -20,8 +20,6 @@ import pandas as pd
 from pathlib import Path
 import random
 import os
-import glob
-import shutil
 import argparse
 
 # --- Configuration ---
@@ -52,6 +50,7 @@ class SpeakerPoolExplorer:
     def load_data(self):
         """Scans the directory structure for JSON metadata and WAV files."""
         data_list = []
+        invalid_entries = []
         
         # Support flexible directory structure: look for metadata folders recursively
         # Expected: root/{lang}/metadata/*.json OR root/metadata/*.json
@@ -68,6 +67,12 @@ class SpeakerPoolExplorer:
                 # Extract Gemini results
                 gemini = meta.get('gemini_res', {})
                 if 'error' in gemini:
+                    invalid_entries.append({
+                        'file': str(json_path),
+                        'reason': 'Gemini error',
+                        'error': gemini.get('error', 'Unknown error'),
+                        'detail': str(gemini),
+                    })
                     continue
 
                 # Locate audio file
@@ -81,6 +86,11 @@ class SpeakerPoolExplorer:
                     if 'pool_wav_path' in meta and os.path.exists(meta['pool_wav_path']):
                          wav_path = Path(meta['pool_wav_path'])
                     else:
+                        invalid_entries.append({
+                            'file': str(json_path),
+                            'reason': 'WAV file not found',
+                            'expected_path': str(wav_path)
+                        })
                         continue # Skip if no audio found
 
                 speaker_id = meta.get('speaker_id', json_path.stem)
@@ -114,13 +124,28 @@ class SpeakerPoolExplorer:
                 data_list.append(entry)
 
             except Exception as e:
+                invalid_entries.append({
+                    'file': str(json_path),
+                    'reason': 'Exception during loading',
+                    'error': str(e)
+                })
                 print(f"Error loading {json_path}: {e}")
 
         self.df = pd.DataFrame(data_list)
-        if not self.df.empty:
-            # Sort by recent (assuming file creating usually correlates, or just random/scan order)
-            # here we just leave it as scan order, effectively "random"
-            pass
+        
+        # Print invalid entries summary
+        if invalid_entries:
+            print(f"\n{'='*80}")
+            print(f"⚠️  Found {len(invalid_entries)} invalid entries:")
+            print(f"{'='*80}")
+            for idx, entry in enumerate(invalid_entries, 1):
+                print(f"\n[{idx}] File: {entry['file']}")
+                print(f"    Reason: {entry['reason']}")
+                if 'error' in entry:
+                    print(f"    Error: {entry['error']}")
+                if 'expected_path' in entry:
+                    print(f"    Expected path: {entry['expected_path']}")
+            print(f"{'='*80}\n")
         
         print(f"Loaded {len(self.df)} valid entries.")
         return f"Loaded {len(self.df)} speakers."
@@ -186,7 +211,8 @@ class SpeakerPoolExplorer:
 
         # Randomize or just take head (latest scanned)
         if randomize:
-            filtered_df = filtered_df.sample(n=min(len(filtered_df), limit))
+            # Use random.sample to ensure truly random sampling each time
+            filtered_df = filtered_df.sample(n=min(len(filtered_df), limit), random_state=random.randint(0, 999999))
         else:
             # Default behavior: show top N
             filtered_df = filtered_df.head(limit)

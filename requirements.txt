@@ -1,0 +1,11 @@
+# Core dependencies
+gradio>=4.0.0
+pandas>=2.0.0
+torchaudio>=2.0.0
+tqdm>=4.65.0
+
+# For Gemini API
+google-cloud-texttospeech
+google-cloud-speech
+google-cloud-storage
+google-generativeai
