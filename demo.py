@@ -79,6 +79,8 @@ class SpeakerPoolExplorer:
                 # Strategy: Look in ../wavs/ relative to metadata folder
                 wav_dir = json_path.parent.parent / "wavs"
                 wav_path = wav_dir / f"{json_path.stem}.wav"
+                if not wav_path.exists():
+                    wav_path = wav_dir / f"{json_path.stem}.mp3"
                 
                 if not wav_path.exists():
                     # Fallback: try finding it relative to root if structure differs
@@ -153,7 +155,11 @@ class SpeakerPoolExplorer:
     def get_filter_choices(self, column):
         if self.df.empty:
             return []
-        return sorted(list(self.df[column].unique()))
+        # Filter out None/NaN values before sorting
+        unique_values = self.df[column].dropna().unique()
+        # Convert to list and filter out any remaining None values
+        choices = [str(x) for x in unique_values if x is not None and str(x) != 'nan']
+        return sorted(choices)
 
     def filter_data(self, 
                     lang_filter, 

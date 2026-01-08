@@ -216,6 +216,7 @@ class SpeakerPoolCreator:
                         continue
                     
                     # Find corresponding WAV file (check before loading JSON)
+                    file_extension = '.wav'
                     wav_file = json_file.with_suffix('.wav')
                     if not wav_file.exists():
                         # Also try .mp3 extension
@@ -223,6 +224,8 @@ class SpeakerPoolCreator:
                         if not wav_file.exists():
                             skipped_no_wav += 1
                             continue
+                        else:
+                            file_extension = '.mp3'
                     
                     # Check duration BEFORE loading JSON metadata
                     duration = self.get_audio_duration(wav_file)
@@ -304,6 +307,8 @@ class SpeakerPoolCreator:
         
         for speaker_id, data in tqdm(sampled_speakers.items(), desc="Copying WAV files"):
             output_wav = self.wavs_dir / f"{speaker_id}.wav"
+            if data['wav_path'].suffix.lower() == '.mp3':
+                output_wav = self.wavs_dir / f"{speaker_id}.mp3"
             
             # Skip if WAV already exists (resume support)
             if output_wav.exists():
