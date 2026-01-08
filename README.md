@@ -4,10 +4,10 @@ A curated, richly-annotated multi-speaker dataset for zero-shot voice cloning an
 
 ## Dataset Overview
 
-**YodasSpeakerPool** contains approximately **8,000 unique speakers** with high-quality audio samples and comprehensive metadata:
+**YodasSpeakerPool** contains approximately **7,600 unique speakers** with high-quality audio samples and comprehensive metadata:
 
-- **3,800 Chinese speakers** (Emilia-YODAS Chinese - all shards)
-- **4,500 English speakers** (Emilia-YODAS English - first 8 shards)
+- **3.4K Chinese speakers** (Emilia-YODAS Chinese - all shards)
+- **4.2K English speakers** (Emilia-YODAS English - first 8 shards)
 
 Each speaker sample:
 - Duration: 4-15 seconds of clean speech
@@ -16,7 +16,7 @@ Each speaker sample:
 
 ## Visualization & Exploration
 
-An interactive **Gradio-based demo** is included to browse, filter, and annotate the speaker pool:
+An interactive web demo is included to browse, filter, and annotate the speaker pool:
 
 <img width="1725" height="1241" alt="image" src="https://github.com/user-attachments/assets/729284d1-f64f-4a25-9fe6-76e17626deed" />
 
