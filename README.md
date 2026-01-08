@@ -37,7 +37,7 @@ Features:
 
 The complete dataset is available on Hugging Face:
 
-**[🤗 YodasSpeakerPool on Hugging Face](#)** *(link to be added)*
+**[🤗 YodasSpeakerPool on Hugging Face](https://huggingface.co/datasets/fangningshao/YodasSpeakerPool)**
 
 ## Use Cases
 
